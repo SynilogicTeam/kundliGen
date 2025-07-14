@@ -36,10 +36,11 @@ export const getConfig = async () => {
 app.locals.getConfig = getConfig;
 
 // Middleware
-app.use(cors({
-  origin: 'http://localhost:5173', // Vite default port
-  credentials: true
-}));
+app.use(cors("*"));
+// app.use(cors({
+//   origin: 'http://localhost:5173', // Vite default port
+//   credentials: true
+// }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
