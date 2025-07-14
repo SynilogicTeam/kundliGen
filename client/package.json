@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "nodemon server/server.js"
+    "server": "nodemon server/server.js",
+    "build": "vite build"
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.7",
