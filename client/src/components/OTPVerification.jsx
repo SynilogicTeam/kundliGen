@@ -76,7 +76,7 @@ const OTPVerification = ({
     try {
       if (type === 'registration') {
         // Registration OTP verification
-        const response = await fetch('http://localhost:5000/api/users/verify-registration-otp', {
+        const response = await fetch('/api/users/verify-registration-otp', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ const OTPVerification = ({
         onVerificationSuccess(data);
       } else {
         // Password reset OTP verification - just verify OTP, don't reset password yet
-        const response = await fetch('http://localhost:5000/api/users/verify-reset-otp', {
+        const response = await fetch('/api/users/verify-reset-otp', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -132,8 +132,8 @@ const OTPVerification = ({
     
     try {
       const endpoint = type === 'registration' 
-        ? 'http://localhost:5000/api/users/resend-registration-otp'
-        : 'http://localhost:5000/api/users/resend-reset-otp';
+        ? '/api/users/resend-registration-otp'
+        : '/api/users/resend-reset-otp';
       
       const response = await fetch(endpoint, {
         method: 'POST',

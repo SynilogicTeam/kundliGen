@@ -16,7 +16,7 @@ const AdminConfig = () => {
   const fetchConfig = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await axios.get('http://localhost:5000/api/config', {
+      const response = await axios.get('/api/config', {
         headers: { Authorization: `Bearer ${token}` }
       });
       // The backend returns the config directly, not wrapped in data.data
@@ -81,7 +81,7 @@ const AdminConfig = () => {
           }
         });
 
-        response = await axios.put('http://localhost:5000/api/config', formData, {
+        response = await axios.put('/api/config', formData, {
           headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
@@ -89,7 +89,7 @@ const AdminConfig = () => {
         });
       } else {
         // Send JSON data for non-file updates
-        response = await axios.put('http://localhost:5000/api/config', config, {
+        response = await axios.put('/api/config', config, {
           headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'

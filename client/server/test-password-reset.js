@@ -4,7 +4,7 @@ import fetch from "node-fetch";
 
 dotenv.config();
 
-const BASE_URL = 'http://localhost:5000/api/users';
+const BASE_URL = '/api/users';
 
 const testPasswordResetFlow = async () => {
   console.log('🧪 Testing Password Reset Flow...\n');
