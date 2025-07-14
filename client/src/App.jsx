@@ -5,7 +5,7 @@ import Home from './pages/home';
 import Profile from './pages/Profile';
 import ChangePassword from './pages/ChangePassword';
 import Dashboard from './pages/Dashboard';
-import AdminLogin from './components/admin/AdminLogin';
+import AdminLogin from './components/admin/adminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import { GoogleMapsProvider } from './context/GoogleMapsContext';
 import AdminConfig from './pages/admin/AdminConfig';
