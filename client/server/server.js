@@ -7,6 +7,7 @@ import adminRoutes from "./routers/adminRoutes.js";
 import configRoutes from "./routers/configRoutes.js";
 import reportRoutes from "./routers/reportRoutes.js";
 import Config from "./models/Config.js";
+import path from "path";
 
 dotenv.config();
 
@@ -46,6 +47,13 @@ app.use("/api/users", userRouter);
 app.use("/api/auth/admin", adminRoutes);
 app.use("/api/config", configRoutes);
 app.use("/api/reports", reportRoutes);
+
+
+app.use(express.static(path.join(__dirname, '../dist')));
+app.get('/{*any}', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
