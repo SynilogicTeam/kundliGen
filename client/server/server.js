@@ -8,12 +8,16 @@ import configRoutes from "./routers/configRoutes.js";
 import reportRoutes from "./routers/reportRoutes.js";
 import Config from "./models/Config.js";
 import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
 db();
 
 const app = express();
+app.use(express.json());
+app.set('view engine', 'ejs');
+
 const PORT = process.env.PORT || 5000;
 
 // Global Config Helper Function
@@ -48,6 +52,10 @@ app.use("/api/users", userRouter);
 app.use("/api/auth/admin", adminRoutes);
 app.use("/api/config", configRoutes);
 app.use("/api/reports", reportRoutes);
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 app.use(express.static(path.join(__dirname, '../dist')));
