@@ -59,7 +59,7 @@ const Reports = () => {
       if (filters.type) params.append('type', filters.type);
       if (filters.isActive !== '') params.append('isActive', filters.isActive);
       
-      const response = await axios.get(`/api/reports?${params}`);
+      const response = await axios.get(`http://localhost:5000/api/reports?${params}`);
       
       if (response.data.success) {
         const fetchedReports = response.data.data.reports;
@@ -192,14 +192,14 @@ const Reports = () => {
       let response;
 
       if (editingReport) {
-        response = await axios.put(`/api/reports/${editingReport._id}`, submitData, {
+        response = await axios.put(`http://localhost:5000/api/reports/${editingReport._id}`, submitData, {
           headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
       } else {
-        response = await axios.post('/api/reports', submitData, {
+        response = await axios.post('http://localhost:5000/api/reports', submitData, {
           headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -258,7 +258,7 @@ const Reports = () => {
 
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await axios.delete(`/api/reports/${reportId}`, {
+      const response = await axios.delete(`http://localhost:5000/api/reports/${reportId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -290,7 +290,7 @@ const Reports = () => {
 
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await axios.patch(`/api/reports/${reportId}/toggle-status`, {}, {
+      const response = await axios.patch(`http://localhost:5000/api/reports/${reportId}/toggle-status`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

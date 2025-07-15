@@ -55,7 +55,7 @@ const AdminLogin = () => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('/api/auth/admin/login', {
+      const response = await fetch('http://localhost:5000/api/auth/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

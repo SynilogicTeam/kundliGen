@@ -20,7 +20,7 @@ export const GoogleMapsProvider = ({ children }) => {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const response = await fetch('/api/config');
+        const response = await fetch('http://localhost:5000/api/config');
         if (response.ok) {
           const configData = await response.json();
           setConfig(configData);
@@ -35,9 +35,11 @@ export const GoogleMapsProvider = ({ children }) => {
   }, []);
 
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: config?.googleMapsApiKey || '',
+    googleMapsApiKey:config?.googleMapsApiKey,
     libraries,
   });
+
+  
 
   const value = {
     isLoaded,

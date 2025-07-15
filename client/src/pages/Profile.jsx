@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useLoadScript, Autocomplete } from '@react-google-maps/api';
-
-const libraries = ['places'];
+import { useGoogleMaps } from '../context/GoogleMapsContext';
+import { Autocomplete } from '@react-google-maps/api';
 
 const Profile = () => {
   const { user, updateUser } = useAuth();
+  const { isLoaded, loadError } = useGoogleMaps();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -14,6 +14,7 @@ const Profile = () => {
     dateOfBirth: user?.dateOfBirth || '',
     address: user?.address || ''
   });
+  
   // Add missing state variables
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -26,32 +27,6 @@ const Profile = () => {
     placeId: user?.location?.placeId || ''
   });
   const autocompleteRef = useRef(null);
-
-  const [config, setConfig] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const response = await fetch('/api/config');
-        if (response.ok) {
-          const configData = await response.json();
-          setConfig(configData);
-        }
-      } catch (error) {
-        console.error('Failed to fetch config:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchConfig();
-  }, []);
-
-  // Google Maps script loader
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: config?.googleMapsApiKey, 
-    libraries,
-  });
 
   useEffect(() => {
     if (user) {
@@ -72,16 +47,27 @@ const Profile = () => {
 
   // Handle Google Places selection
   const onPlaceChanged = () => {
-    const place = autocompleteRef.current.getPlace();
-    if (place && place.geometry) {
-      setLocation({
-        formattedAddress: place.formatted_address,
-        coordinates: [
-          place.geometry.location.lng(),
-          place.geometry.location.lat()
-        ],
-        placeId: place.place_id
-      });
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace();
+      if (place && place.geometry) {
+        setLocation({
+          formattedAddress: place.formatted_address,
+          coordinates: [
+            place.geometry.location.lng(),
+            place.geometry.location.lat()
+          ],
+          placeId: place.place_id
+        });
+        
+        // Clear any location-related errors
+        if (errors.location) {
+          setErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.location;
+            return newErrors;
+          });
+        }
+      }
     }
   };
 
@@ -97,6 +83,26 @@ const Profile = () => {
         ...prev,
         [name]: ''
       }));
+    }
+  };
+
+  const handleLocationInputChange = (e) => {
+    const value = e.target.value;
+    setLocation(prev => ({
+      ...prev,
+      formattedAddress: value,
+      // Clear coordinates when manually typing
+      coordinates: [0, 0],
+      placeId: ''
+    }));
+    
+    // Clear location errors
+    if (errors.location) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.location;
+        return newErrors;
+      });
     }
   };
 
@@ -132,7 +138,7 @@ const Profile = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/users/profile', {
+      const response = await fetch('http://localhost:5000/api/users/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -184,8 +190,17 @@ const Profile = () => {
     setIsEditing(false);
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
+  // Handle Google Maps loading error
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Google Maps Error</h2>
+          <p className="text-gray-600 mb-4">Unable to load Google Maps. Some features may be limited.</p>
+          <p className="text-sm text-gray-500">Please refresh the page or try again later.</p>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {
@@ -314,7 +329,7 @@ const Profile = () => {
               </div>
 
               {/* Address */}
-              <div className="mb-8">
+              <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Address
                 </label>
@@ -333,37 +348,74 @@ const Profile = () => {
                 />
               </div>
 
-              {/* Location Autocomplete */}
-              <div className="mb-6">
+              {/* Location with Google Places Autocomplete */}
+              <div className="mb-8">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Profile Location
+                  Profile Location {!isLoaded && isEditing && <span className="text-gray-500 text-xs">(Loading Google Places...)</span>}
                 </label>
-                {isLoaded && isEditing ? (
-                  <Autocomplete
-                    onLoad={ref => (autocompleteRef.current = ref)}
-                    onPlaceChanged={onPlaceChanged}
-                  >
+                
+                {isEditing ? (
+                  <>
+                    {isLoaded ? (
+                      <Autocomplete
+                        onLoad={ref => (autocompleteRef.current = ref)}
+                        onPlaceChanged={onPlaceChanged}
+                        options={{
+                          types: ['(cities)'],
+                          fields: ['place_id', 'geometry', 'name', 'formatted_address']
+                        }}
+                      >
+                        <input
+                          type="text"
+                          value={location.formattedAddress}
+                          onChange={handleLocationInputChange}
+                          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors ${
+                            errors.location ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                          placeholder="Search for your location (e.g., New Delhi, India)"
+                          autoComplete="off"
+                        />
+                      </Autocomplete>
+                    ) : (
+                      <input
+                        type="text"
+                        value={location.formattedAddress}
+                        onChange={handleLocationInputChange}
+                        disabled={!isLoaded}
+                        className="w-full px-4 py-3 border rounded-lg bg-gray-100 border-gray-300"
+                        placeholder="Loading Google Places..."
+                      />
+                    )}
+                    
+                    {/* Location Status */}
+                    {location.coordinates && location.coordinates[0] !== 0 && location.coordinates[1] !== 0 && (
+                      <p className="text-green-600 text-sm mt-1 flex items-center">
+                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        Location verified (Lat: {location.coordinates[1]?.toFixed(4)}, Lng: {location.coordinates[0]?.toFixed(4)})
+                      </p>
+                    )}
+                    
+                    {errors.location && (
+                      <p className="mt-1 text-sm text-red-600">{errors.location}</p>
+                    )}
+                  </>
+                ) : (
+                  <>
                     <input
                       type="text"
                       value={location.formattedAddress}
-                      onChange={e => setLocation({ ...location, formattedAddress: e.target.value })}
-                      className="w-full px-4 py-3 border rounded-lg"
-                      placeholder="Search for your location"
-                      disabled={!isEditing}
+                      className="w-full px-4 py-3 border rounded-lg bg-gray-50 border-gray-200"
+                      disabled
+                      placeholder="No location set"
                     />
-                  </Autocomplete>
-                ) : (
-                  <input
-                    type="text"
-                    value={location.formattedAddress}
-                    className="w-full px-4 py-3 border rounded-lg bg-gray-50"
-                    disabled
-                  />
-                )}
-                {location.coordinates && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    Lat: {location.coordinates[1]}, Lng: {location.coordinates[0]}
-                  </div>
+                    {location.coordinates && location.coordinates[0] !== 0 && location.coordinates[1] !== 0 && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        Coordinates: {location.coordinates[1]?.toFixed(4)}, {location.coordinates[0]?.toFixed(4)}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -375,7 +427,14 @@ const Profile = () => {
                     disabled={isLoading}
                     className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? 'Saving...' : 'Save Changes'}
+                    {isLoading ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Saving...
+                      </div>
+                    ) : (
+                      'Save Changes'
+                    )}
                   </button>
                 </div>
               )}

@@ -9,6 +9,7 @@ import reportRoutes from "./routers/reportRoutes.js";
 import Config from "./models/Config.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from 'fs';
 
 dotenv.config();
 
@@ -19,6 +20,22 @@ app.use(express.json());
 app.set('view engine', 'ejs');
 
 const PORT = process.env.PORT || 5000;
+
+// Define __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Create necessary directories
+const uploadsDir = path.join(__dirname, '../public/uploads');
+const publicImagesDir = path.join(__dirname, '../public/images');
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+if (!fs.existsSync(publicImagesDir)) {
+  fs.mkdirSync(publicImagesDir, { recursive: true });
+}
 
 // Global Config Helper Function
 export const getConfig = async () => {
@@ -41,28 +58,21 @@ app.locals.getConfig = getConfig;
 
 // Middleware
 app.use(cors("*"));
-// app.use(cors({
-//   origin: 'http://localhost:5173', // Vite default port
-//   credentials: true
-// }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files
+app.use('/images', express.static(path.join(__dirname, '../public/images')));
 
 app.use("/api/users", userRouter);
 app.use("/api/auth/admin", adminRoutes);
 app.use("/api/config", configRoutes);
 app.use("/api/reports", reportRoutes);
 
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-
 app.use(express.static(path.join(__dirname, '../dist')));
 app.get('/{*any}', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
-
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
