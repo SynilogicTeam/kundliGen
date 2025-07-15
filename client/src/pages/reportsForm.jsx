@@ -331,7 +331,7 @@ const ReportsForm = ({ selectedReport, onClose, onSuccess }) => {
       };
 
       // Here you would typically send the data to your backend
-      const response = await fetch('http://localhost:5000/api/reports/create', {
+      const response = await fetch('/api/reports/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

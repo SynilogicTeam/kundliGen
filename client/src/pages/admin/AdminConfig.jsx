@@ -21,7 +21,7 @@ const AdminConfig = () => {
   const fetchConfig = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await axios.get('http://localhost:5000/api/config', {
+      const response = await axios.get('/api/config', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setConfig(response.data);
@@ -36,7 +36,7 @@ const AdminConfig = () => {
   const fetchUploadedImages = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await axios.get('http://localhost:5000/api/config/images', {
+      const response = await axios.get('/api/config/images', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUploadedImages(response.data);
@@ -94,7 +94,7 @@ const AdminConfig = () => {
 
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await axios.post('http://localhost:5000/api/config/upload-image', formData, {
+      const response = await axios.post('/api/config/upload-image', formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -126,7 +126,7 @@ const AdminConfig = () => {
   const deleteImage = async (imageId) => {
     try {
       const token = localStorage.getItem('adminToken');
-      await axios.delete(`http://localhost:5000/api/config/delete-image/${imageId}`, {
+      await axios.delete(`/api/config/delete-image/${imageId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -157,14 +157,14 @@ const AdminConfig = () => {
           }
         });
 
-        response = await axios.put('http://localhost:5000/api/config', formData, {
+        response = await axios.put('/api/config', formData, {
           headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
           }
         });
       } else {
-        response = await axios.put('http://localhost:5000/api/config', config, {
+        response = await axios.put('/api/config', config, {
           headers: { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'

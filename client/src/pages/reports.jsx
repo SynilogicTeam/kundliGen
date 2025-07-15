@@ -27,7 +27,7 @@ const Reports = () => {
     const loadReports = async () => {
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/api/reports/active');
+        const response = await fetch('/api/reports/active');
         const result = await response.json();
 
         if (result.success && result.data) {

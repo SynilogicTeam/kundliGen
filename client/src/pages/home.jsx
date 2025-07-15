@@ -24,7 +24,7 @@ const Home = () => {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/config');
+        const response = await fetch('/api/config');
         if (response.ok) {
           const configData = await response.json();
           setConfig(configData);
