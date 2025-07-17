@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import ReportsForm from './reportsForm';
+import LoginForm from '../components/loginForm';
 
 const Reports = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showReportsForm, setShowReportsForm] = useState(false);
+  const [showLoginForm, setShowLoginForm] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const reportsScrollRef = useRef(null);
 
@@ -52,6 +58,15 @@ const Reports = () => {
   // Handler for report selection
   const handleGetReport = (report) => {
     console.log('Selected report:', report);
+    
+    // Check if user is logged in
+    if (!user) {
+      // Show login popup instead of redirecting
+      setSelectedReport(report);
+      setShowLoginForm(true);
+      return;
+    }
+    
     setSelectedReport(report);
     setShowReportsForm(true);
   };
@@ -59,6 +74,19 @@ const Reports = () => {
   const handleCloseForm = () => {
     setShowReportsForm(false);
     setSelectedReport(null);
+  };
+
+  const handleCloseLoginForm = () => {
+    setShowLoginForm(false);
+    setSelectedReport(null);
+  };
+
+  const handleLoginSuccess = () => {
+    // After successful login, automatically open the reports form
+    setShowLoginForm(false);
+    if (selectedReport) {
+      setShowReportsForm(true);
+    }
   };
 
   const handleFormSuccess = (formData) => {
@@ -86,7 +114,7 @@ const Reports = () => {
             </p>
           </div>
           
-          {loading ? (
+          {loading || authLoading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
               <p className="mt-4 text-slate-600">Loading reports...</p>
@@ -135,7 +163,7 @@ const Reports = () => {
                         className="w-full py-3 px-4 rounded-xl font-bold transition-all duration-300 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25"
                         onClick={() => handleGetReport(report)}
                       >
-                        Get Report ✨
+                        {user ? 'Get Report ✨' : 'Login to Get Report 🔐'}
                       </button>
                     </div>
                   </div>
@@ -187,12 +215,21 @@ const Reports = () => {
         `}</style>
       </section>
 
-      {/* Reports Form Modal */}
-      {showReportsForm && (
+      {/* Reports Form Modal - Only show if user is logged in */}
+      {showReportsForm && user && (
         <ReportsForm
           selectedReport={selectedReport}
           onClose={handleCloseForm}
           onSuccess={handleFormSuccess}
+        />
+      )}
+
+      {/* Login Form Modal */}
+      {showLoginForm && (
+        <LoginForm 
+          onClose={handleCloseLoginForm} 
+          isModal={true}
+          onLoginSuccess={handleLoginSuccess}
         />
       )}
     </>

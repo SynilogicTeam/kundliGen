@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import LoginForm from './loginForm';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoginFormOpen, setIsLoginFormOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -31,6 +33,7 @@ const Navbar = () => {
   }, [isUserDropdownOpen]);
 
   const handleLogin = () => {
+    // Show login popup instead of navigating
     setIsLoginFormOpen(true);
   };
 
@@ -42,8 +45,6 @@ const Navbar = () => {
     logout();
     setIsUserDropdownOpen(false);
   };
-
-
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -376,7 +377,14 @@ const Navbar = () => {
           </div>
         )}
       </div>
-      {isLoginFormOpen && <LoginForm onClose={handleCloseLoginForm} />}
+
+      {/* Login Form Modal */}
+      {isLoginFormOpen && (
+        <LoginForm 
+          onClose={handleCloseLoginForm} 
+          isModal={true}
+        />
+      )}
     </nav>
   );
 };

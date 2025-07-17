@@ -14,6 +14,7 @@ import Reports from './pages/admin/Reports';
 import Customers from './pages/admin/Customers';
 import Orders from './pages/admin/Orders';
 import Analytics from './pages/admin/Analytics';
+import LoginForm from './components/loginForm';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/login" element={<LoginForm />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/change-password" element={<ChangePassword />} />

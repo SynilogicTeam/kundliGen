@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Reports from './reports';
+import LoginForm from '../components/loginForm';
 
 const Home = () => {
   const [formData, setFormData] = useState({
@@ -20,6 +21,8 @@ const Home = () => {
     companyPhone: '+91-9876543210',
     companyAddress: 'Mumbai, Maharashtra, India'
   });
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -110,6 +113,22 @@ const Home = () => {
     if (reportsSection) {
       reportsSection.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleGetReport = (report) => {
+    // This will be handled by the Reports component
+    // Just scroll to reports section
+    scrollToReports();
+  };
+
+  const handleCloseLoginForm = () => {
+    setShowLoginForm(false);
+    setSelectedReport(null);
+  };
+
+  const handleLoginSuccess = () => {
+    setShowLoginForm(false);
+    // The Reports component will handle opening the form
   };
 
   return (
@@ -743,6 +762,15 @@ const Home = () => {
       </section>
 
       <Footer />
+
+      {/* Login Form Modal */}
+      {showLoginForm && (
+        <LoginForm 
+          onClose={handleCloseLoginForm} 
+          isModal={true}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      )}
 
       <style jsx>{`
         @keyframes blob {
