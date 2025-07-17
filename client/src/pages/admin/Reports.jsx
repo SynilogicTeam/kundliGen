@@ -11,7 +11,7 @@ const Reports = () => {
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [filters, setFilters] = useState({
-    type: '',
+    pdfReportType: '',
     isActive: '',
     search: ''
   });
@@ -22,18 +22,45 @@ const Reports = () => {
     limit: 10
   });
 
+  // API options mapping
+  const apiOptions = {
+    'Vedic Reports': [
+      { name: 'Kundali PDF - Sampoorna', value: 'https://pdf.divineapi.com/indian-api/v1/kundali-sampoorna' },
+      { name: 'Kundali PDF - Ananta', value: 'https://pdf.divineapi.com/indian-api/v1/kundali-ananta' },
+      { name: 'Kundali PDF - Prakash', value: 'https://pdf.divineapi.com/indian-api/v1/kundali-prakash' },
+      { name: 'Match Making PDF', value: 'https://pdf.divineapi.com/indian-api/v1/match-making' },
+      { name: 'Government Job Report', value: 'https://pdf.divineapi.com/indian-api/v1/government-job-report' },
+      { name: 'Foreign Travel and Settlement', value: 'https://pdf.divineapi.com/indian-api/v1/foreign-travel-settlement' },
+      { name: 'Vedic Yearly Prediction 5 Year', value: 'https://pdf.divineapi.com/indian-api/v1/vedic-yearly-prediction-5-year' },
+      { name: 'Vedic Yearly Prediction 10 Year', value: 'https://pdf.divineapi.com/indian-api/v1/vedic-yearly-prediction-10-year' },
+      { name: 'Vedic Yearly Prediction 15 Year', value: 'https://pdf.divineapi.com/indian-api/v1/vedic-yearly-prediction-15-year' }
+    ],
+    'Natal Report': [
+      { name: 'Natal Report', value: 'https://pdf.divineapi.com/astrology/v2/report' }
+    ],
+    'Natal Couple Report': [
+      { name: 'Natal Couple Report', value: 'https://pdf.divineapi.com/astrology/v1/couple' }
+    ],
+    'Prediction Report': [
+      { name: 'Prediction Report', value: 'https://pdf.divineapi.com/numerology/v1/prediction_reports' }
+    ],
+    'Numerology Report': [
+      { name: 'Numerology Report', value: 'https://pdf.divineapi.com/numerology/v2/report' }
+    ]
+  };
+
   const [formData, setFormData] = useState({
     name: '',
-    type: 'Basic',
     price: '',
     description: '',
+    pdfReportType: '',
     divineReportType: '',
     isActive: true
   });
 
   useEffect(() => {
     fetchReports();
-  }, [pagination.currentPage, filters.type, filters.isActive]);
+  }, [pagination.currentPage, filters.pdfReportType, filters.isActive]);
 
   // Separate effect for search to avoid refetching from server
   useEffect(() => {
@@ -56,7 +83,7 @@ const Reports = () => {
       params.append('limit', pagination.limit.toString());
       
       // Add filters only if they have values
-      if (filters.type) params.append('type', filters.type);
+      if (filters.pdfReportType) params.append('pdfReportType', filters.pdfReportType);
       if (filters.isActive !== '') params.append('isActive', filters.isActive);
       
       const response = await axios.get(`/api/reports?${params}`);
@@ -115,10 +142,20 @@ const Reports = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
-    });
+    
+    if (name === 'pdfReportType') {
+      // Reset divineReportType when pdfReportType changes
+      setFormData({
+        ...formData,
+        [name]: value,
+        divineReportType: ''
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: type === 'checkbox' ? checked : value
+      });
+    }
   };
 
   const handleFilterChange = (e) => {
@@ -128,8 +165,8 @@ const Reports = () => {
       [name]: value
     }));
     
-    // Reset pagination when changing type or status filters
-    if (name === 'type' || name === 'isActive') {
+    // Reset pagination when changing filters
+    if (name === 'pdfReportType' || name === 'isActive') {
       setPagination(prev => ({ ...prev, currentPage: 1 }));
     }
   };
@@ -137,9 +174,9 @@ const Reports = () => {
   const resetForm = () => {
     setFormData({
       name: '',
-      type: 'Basic',
       price: '',
       description: '',
+      pdfReportType: '',
       divineReportType: '',
       isActive: true
     });
@@ -150,9 +187,9 @@ const Reports = () => {
     const errors = [];
     
     if (!formData.name.trim()) errors.push('Report name is required');
-    if (!formData.type) errors.push('Report type is required');
     if (!formData.price || formData.price <= 0) errors.push('Price must be greater than 0');
     if (!formData.description.trim()) errors.push('Description is required');
+    if (!formData.pdfReportType) errors.push('PDF Report type is required');
     if (!formData.divineReportType.trim()) errors.push('Divine API report type is required');
     
     return errors;
@@ -235,9 +272,9 @@ const Reports = () => {
     setEditingReport(report);
     setFormData({
       name: report.name,
-      type: report.type,
       price: report.price.toString(),
       description: report.description,
+      pdfReportType: report.pdfReportType || '',
       divineReportType: report.divineReportType,
       isActive: report.isActive
     });
@@ -315,6 +352,11 @@ const Reports = () => {
   const showMessage = (type, text) => {
     setMessage({ type, text });
     setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+  };
+
+  // Get current API options based on selected PDF Report type
+  const getCurrentApiOptions = () => {
+    return apiOptions[formData.pdfReportType] || [];
   };
 
   const getStatusBadge = (isActive) => (
@@ -432,18 +474,19 @@ const Reports = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">PDF Report Type</label>
                 <select
-                  name="type"
-                  value={filters.type}
+                  name="pdfReportType"
+                  value={filters.pdfReportType}
                   onChange={handleFilterChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 >
-                  <option value="">All Types</option>
-                  <option value="Basic">Basic</option>
-                  <option value="Sampoorna">Sampoorna</option>
-                  <option value="Ananta">Ananta</option>
-                  <option value="Match Making">Match Making</option>
+                  <option value="">All PDF Report Types</option>
+                  <option value="Vedic Reports">Vedic Reports</option>
+                  <option value="Natal Report">Natal Report</option>
+                  <option value="Natal Couple Report">Natal Couple Report</option>
+                  <option value="Prediction Report">Prediction Report</option>
+                  <option value="Numerology Report">Numerology Report</option>
                 </select>
               </div>
               <div>
@@ -462,7 +505,7 @@ const Reports = () => {
               <div className="flex items-end">
                 <button
                   onClick={() => {
-                    setFilters({ type: '', isActive: '', search: '' });
+                    setFilters({ pdfReportType: '', isActive: '', search: '' });
                     setPagination(prev => ({ ...prev, currentPage: 1 }));
                   }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
@@ -510,35 +553,60 @@ const Reports = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Report Type *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹) *</label>
+                      <input
+                        type="number"
+                        name="price"
+                        value={formData.price}
+                        onChange={handleInputChange}
+                        required
+                        min="0"
+                        step="0.01"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">PDF Report API Type *</label>
                       <select
-                        name="type"
-                        value={formData.type}
+                        name="pdfReportType"
+                        value={formData.pdfReportType}
                         onChange={handleInputChange}
                         required
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       >
-                        <option value="Basic">Basic</option>
-                        <option value="Sampoorna">Sampoorna</option>
-                        <option value="Ananta">Ananta</option>
-                        <option value="Match Making">Match Making</option>
+                        <option value="">Select PDF Report Type</option>
+                        <option value="Vedic Reports">Vedic Reports</option>
+                        <option value="Natal Report">Natal Report</option>
+                        <option value="Natal Couple Report">Natal Couple Report</option>
+                        <option value="Prediction Report">Prediction Report</option>
+                        <option value="Numerology Report">Numerology Report</option>
                       </select>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹) *</label>
-                    <input
-                      type="number"
-                      name="price"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      required
-                      min="0"
-                      step="0.01"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="0.00"
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Divine API Report Type *</label>
+                      <select
+                        name="divineReportType"
+                        value={formData.divineReportType}
+                        onChange={handleInputChange}
+                        required
+                        disabled={!formData.pdfReportType}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        <option value="">
+                          {formData.pdfReportType ? 'Select API Report' : 'Select PDF Report Type first'}
+                        </option>
+                        {getCurrentApiOptions().map((option, index) => (
+                          <option key={index} value={option.value}>
+                            {option.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div>
@@ -551,19 +619,6 @@ const Reports = () => {
                       rows="3"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       placeholder="Enter report description"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Divine API Report Type *</label>
-                    <input
-                      type="text"
-                      name="divineReportType"
-                      value={formData.divineReportType}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="e.g., basic_kundli, sampoorna_kundli"
                     />
                   </div>
 
@@ -630,7 +685,7 @@ const Reports = () => {
                       Report
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
+                      PDF Report Type
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Price
@@ -657,7 +712,9 @@ const Reports = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {getTypeBadge(report.type)}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {report.pdfReportType}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         ₹{report.price}
@@ -776,12 +833,12 @@ const Reports = () => {
                 </svg>
                 <h3 className="mt-2 text-sm font-medium text-gray-900">No reports found</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  {filters.search || filters.type || filters.isActive 
+                  {filters.search || filters.pdfReportType || filters.isActive 
                     ? 'Try adjusting your filters to find what you\'re looking for.'
                     : 'Get started by creating a new report.'
                   }
                 </p>
-                {!filters.search && !filters.type && !filters.isActive && (
+                {!filters.search && !filters.pdfReportType && !filters.isActive && (
                   <div className="mt-6">
                     <button
                       onClick={() => {

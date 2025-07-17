@@ -122,14 +122,14 @@ const Reports = () => {
                     <div className="relative z-10 text-center">
                       <div className="w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                         <span className="text-3xl text-white">
-                          {getReportIcon(report.type, index)}
+                          {getReportIcon(report.pdfReportType, index)}
                         </span>
                       </div>
                       <h3 className="text-2xl font-bold text-slate-800 mb-4">{report.name}</h3>
                       <p className="text-slate-600 mb-6 text-sm leading-relaxed">{report.description}</p>
                       <div className="report-price text-center mb-6">
                         <span className="price text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">₹{report.price?.toLocaleString() || 'N/A'}</span>
-                        <span className="duration block text-xs text-slate-500 mt-2">{report.divineReportType || report.reportType || 'Standard Report'}</span>
+                        <span className="duration block text-xs text-slate-500 mt-2">{report.pdfReportType||  'Standard Report'}</span>
                       </div>
                       <button 
                         className="w-full py-3 px-4 rounded-xl font-bold transition-all duration-300 bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25"

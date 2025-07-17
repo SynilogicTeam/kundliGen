@@ -6,10 +6,9 @@ const ReportSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  type: {
+  pdfReportType: {
     type: String,
-    required: true,
-    enum: ['Basic', 'Sampoorna', 'Ananta', 'Match Making']
+    required: true
   },
   price: {
     type: Number,

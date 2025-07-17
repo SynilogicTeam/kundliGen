@@ -3,10 +3,10 @@ import Report from '../models/reports.js';
 // Create a new report
 export const createReport = async (req, res) => {
   try {
-    const { name, type, price, description, divineReportType, isActive } = req.body;
+    const { name, pdfReportType, price, description, divineReportType, isActive } = req.body;
 
     // Validate required fields
-    if (!name || !type || !price || !description || !divineReportType) {
+    if (!name || !pdfReportType || !price || !description || !divineReportType) {
       return res.status(400).json({
         success: false,
         message: 'All required fields must be provided'
@@ -21,19 +21,19 @@ export const createReport = async (req, res) => {
       });
     }
 
-    // Validate report type
-    const validTypes = ['Basic', 'Sampoorna', 'Ananta', 'Match Making'];
-    if (!validTypes.includes(type)) {
+    // Validate PDF report type
+    const validPdfReportTypes = ['Vedic Reports', 'Natal Report', 'Natal Couple Report', 'Prediction Report', 'Numerology Report'];
+    if (!validPdfReportTypes.includes(pdfReportType)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid report type. Must be one of: Basic, Sampoorna, Ananta, Match Making'
+        message: 'Invalid PDF report type. Must be one of: Vedic Reports, Natal Report, Natal Couple Report, Prediction Report, Numerology Report'
       });
     }
 
     // Check if report with same name already exists
     const existingReport = await Report.findOne({ name: name.trim() });
     if (existingReport) {
-      return res.status(400).json({
+      return res.status(409).json({
         success: false,
         message: 'A report with this name already exists'
       });
@@ -41,7 +41,7 @@ export const createReport = async (req, res) => {
 
     const report = new Report({
       name: name.trim(),
-      type,
+      pdfReportType,
       price,
       description: description.trim(),
       divineReportType: divineReportType.trim(),
@@ -69,11 +69,11 @@ export const createReport = async (req, res) => {
 // Get all reports with optional filtering
 export const getAllReports = async (req, res) => {
   try {
-    const { type, isActive, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+    const { pdfReportType, isActive, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
 
     // Build filter object
     const filter = {};
-    if (type) filter.type = type;
+    if (pdfReportType) filter.pdfReportType = pdfReportType;
     if (isActive !== undefined) filter.isActive = isActive === 'true';
 
     // Build sort object
@@ -165,7 +165,7 @@ export const getReportById = async (req, res) => {
 export const updateReport = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, type, price, description, divineReportType, isActive } = req.body;
+    const { name, pdfReportType, price, description, divineReportType, isActive } = req.body;
 
     if (!id) {
       return res.status(400).json({
@@ -193,7 +193,7 @@ export const updateReport = async (req, res) => {
           _id: { $ne: id } 
         });
         if (nameConflict) {
-          return res.status(400).json({
+          return res.status(409).json({
             success: false,
             message: 'A report with this name already exists'
           });
@@ -201,16 +201,19 @@ export const updateReport = async (req, res) => {
       }
       updateData.name = name.trim();
     }
-    if (type !== undefined) {
-      const validTypes = ['Basic', 'Sampoorna', 'Ananta', 'Match Making'];
-      if (!validTypes.includes(type)) {
+    
+    if (pdfReportType !== undefined) {
+      // Validate PDF report type
+      const validPdfReportTypes = ['Vedic Reports', 'Natal Report', 'Natal Couple Report', 'Prediction Report', 'Numerology Report'];
+      if (!validPdfReportTypes.includes(pdfReportType)) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid report type. Must be one of: Basic, Sampoorna, Ananta, Match Making'
+          message: 'Invalid PDF report type. Must be one of: Vedic Reports, Natal Report, Natal Couple Report, Prediction Report, Numerology Report'
         });
       }
-      updateData.type = type;
+      updateData.pdfReportType = pdfReportType;
     }
+    
     if (price !== undefined) {
       if (price < 0) {
         return res.status(400).json({
@@ -220,12 +223,15 @@ export const updateReport = async (req, res) => {
       }
       updateData.price = price;
     }
+    
     if (description !== undefined) {
       updateData.description = description.trim();
     }
+    
     if (divineReportType !== undefined) {
       updateData.divineReportType = divineReportType.trim();
     }
+    
     if (isActive !== undefined) {
       updateData.isActive = isActive;
     }
