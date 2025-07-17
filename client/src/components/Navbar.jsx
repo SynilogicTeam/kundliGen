@@ -11,6 +11,23 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoginFormOpen, setIsLoginFormOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [config, setConfig] = useState({ companyName: 'KundliGen' });
+
+  const fetchConfig = async () => {
+    try {
+      const response = await fetch('/api/config');
+      if (response.ok) {
+        const configData = await response.json();
+        setConfig(configData);
+      }
+    } catch (error) {
+      console.error('Failed to fetch config:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchConfig();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -83,12 +100,14 @@ const Navbar = () => {
           <div className="flex items-center">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
-                <span className="text-white text-lg lg:text-xl font-bold">KG</span>
+                <span className="text-white text-lg lg:text-xl font-bold">
+                  {config.companyName ? config.companyName.substring(0, 2).toUpperCase() : 'KG'}
+                </span>
               </div>
               <span className={`text-xl lg:text-2xl font-bold ${
                 isScrolled ? 'text-slate-800' : 'text-white'
               }`}>
-                KundliGen
+                {config.companyName || 'KundliGen'}
               </span>
             </div>
           </div>
