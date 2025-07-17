@@ -12,7 +12,9 @@ const ReportsForm = ({ selectedReport, onClose, onSuccess }) => {
     location: '',
     latitude: '',
     longitude: '',
-    language: 'english'
+    language: 'english',
+    gender: 'male',
+    timeOfBirth: '12:00'
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -303,6 +305,14 @@ const ReportsForm = ({ selectedReport, onClose, onSuccess }) => {
       newErrors.language = 'Please select a language';
     }
 
+    if (!formData.gender) {
+      newErrors.gender = 'Gender is required';
+    }
+
+    if (!formData.timeOfBirth) {
+      newErrors.timeOfBirth = 'Time of birth is required';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -324,18 +334,20 @@ const ReportsForm = ({ selectedReport, onClose, onSuccess }) => {
         location: formData.location.trim(),
         latitude: parseFloat(formData.latitude),
         longitude: parseFloat(formData.longitude),
-        language: formData.language,
+        language: formData.language === 'english' ? 'en' : 'hi',
         reportId: selectedReport?._id,
         reportName: selectedReport?.name,
-        reportPrice: selectedReport?.price
+        reportPrice: selectedReport?.price,
+        divineReportType: selectedReport?.divineReportType,
+        gender: formData.gender || 'male', // Add gender field
+        timeOfBirth: formData.timeOfBirth || '12:00' // Add time of birth field
       };
 
-      // Here you would typically send the data to your backend
-      const response = await fetch('/api/reports/create', {
+      // Call the new Divine API endpoint
+      const response = await fetch('/api/reports/generate-divine', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(submitData)
       });
@@ -343,10 +355,10 @@ const ReportsForm = ({ selectedReport, onClose, onSuccess }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to create report');
+        throw new Error(data.message || 'Failed to generate report');
       }
 
-      setSuccessMessage('Report created successfully!');
+      setSuccessMessage('Report generated successfully! Check your email for the PDF link.');
       
       // Call success callback if provided
       if (onSuccess) {
@@ -587,6 +599,50 @@ const ReportsForm = ({ selectedReport, onClose, onSuccess }) => {
               </select>
               {errors.language && (
                 <p className="text-red-500 text-sm mt-1">{errors.language}</p>
+              )}
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
+                Gender *
+              </label>
+              <select
+                id="gender"
+                name="gender"
+                value={formData.gender}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                  errors.gender ? 'border-red-500' : 'border-gray-300'
+                }`}
+              >
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+              {errors.gender && (
+                <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
+              )}
+            </div>
+
+            {/* Time of Birth */}
+            <div>
+              <label htmlFor="timeOfBirth" className="block text-sm font-medium text-gray-700 mb-2">
+                Time of Birth (24-hour format)
+              </label>
+              <input
+                type="time"
+                id="timeOfBirth"
+                name="timeOfBirth"
+                value={formData.timeOfBirth}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                  errors.timeOfBirth ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              <p className="text-gray-500 text-sm mt-1">Leave as 12:00 if exact time is unknown</p>
+              {errors.timeOfBirth && (
+                <p className="text-red-500 text-sm mt-1">{errors.timeOfBirth}</p>
               )}
             </div>
 

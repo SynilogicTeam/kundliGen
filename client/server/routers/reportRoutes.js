@@ -7,14 +7,16 @@ import {
   deleteReport,
   toggleReportStatus,
   getActiveReports,
-  bulkUpdateReports
+  bulkUpdateReports,
+  generateDivineReport
 } from '../controllers/reportController.js';
 import { protectAdmin } from '../Middleware/adminAuthMiddleware.js';
 
 const router = express.Router();
 
-
 router.get('/active', getActiveReports); // Get active reports for public use
+router.post('/generate-divine', generateDivineReport); // Generate Divine PDF report
+
 // CRUD operations
 router.post('/', protectAdmin, createReport); // Create new report
 router.get('/', getAllReports); // Get all reports with filtering and pagination
